@@ -16,19 +16,19 @@ public class Parser{
         if (tokens.size() >= 3 && tokens.get(0).getTipo() == Tipo.VARIABLE && tokens.get(1).getTipo() == Tipo.SIGNO_IGUAL) {
             String variable = tokens.poll().getLexema();
             tokens.poll();
-            return new NodoAsignacion(variable, parseSumaResta(tokens));
+            return new NodoAsignacion(variable, parseSumando(tokens));
         } else {
-            return parseSumaResta(tokens);
+            return parseSumando(tokens);
         }
     }
 
-    private Nodo parseSumaResta(LinkedList<Token> tokens) throws SintaxisInvalidaException {
-        Nodo retorno = parseMultiDiv(tokens);
+    private Nodo parseSumando(LinkedList<Token> tokens) throws SintaxisInvalidaException {
+        Nodo retorno = parseFactor(tokens);
         while (!tokens.isEmpty() && tokens.peek().getTipo() == Tipo.OPERADOR) {
             String op = tokens.peek().getLexema();
             if (op.equals("+") || op.equals("-")) {
                 tokens.poll();
-                Nodo aux = parseMultiDiv(tokens);
+                Nodo aux = parseFactor(tokens);
                 retorno = new NodoOperacion(retorno, op, aux);
             }else{
                 break;
@@ -37,13 +37,13 @@ public class Parser{
         return retorno;
     }
 
-    private Nodo parseMultiDiv(LinkedList<Token> tokens) throws SintaxisInvalidaException {
-        Nodo retorno = parseExponencial(tokens);
+    private Nodo parseFactor(LinkedList<Token> tokens) throws SintaxisInvalidaException {
+        Nodo retorno = parseExponente(tokens);
         while (!tokens.isEmpty() && tokens.peek().getTipo() == Tipo.OPERADOR) {
             String op = tokens.peek().getLexema();
             if (op.equals("*") || op.equals("/")) {
                 tokens.poll();
-                Nodo factor2 = parseExponencial(tokens);
+                Nodo factor2 = parseExponente(tokens);
                 retorno = new NodoOperacion(retorno, op, factor2);
             }else{
                 break;
@@ -52,12 +52,12 @@ public class Parser{
         return retorno;
     }
 
-    private Nodo parseExponencial(LinkedList<Token> tokens) throws SintaxisInvalidaException {
+    private Nodo parseExponente(LinkedList<Token> tokens) throws SintaxisInvalidaException {
         Nodo base = parseOperando(tokens);
         if(!tokens.isEmpty() && tokens.peek().getTipo() == Tipo.OPERADOR){
             if(tokens.peek().getLexema().equals("^")){
                 tokens.poll();
-                Nodo exponente = parseExponencial(tokens);
+                Nodo exponente = parseExponente(tokens);
                 return new NodoOperacion(base, "^", exponente);
             }
         }
@@ -75,7 +75,7 @@ public class Parser{
         }
         if(token.getTipo() == Tipo.PARENTESIS_IZQ){
             tokens.poll();
-            Nodo expresion = parseSumaResta(tokens);
+            Nodo expresion = parseSumando(tokens);
             if(!tokens.isEmpty()){
                 Token aux = tokens.poll();
                 if(aux.getTipo() == Tipo.PARENTESIS_DER){
